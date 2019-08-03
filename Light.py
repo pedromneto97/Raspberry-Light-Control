@@ -3,7 +3,8 @@ from Actuator import Actuator
 
 class Light(Actuator):
 
-    def __init__(self, led: int, button: int, state: bool = False) -> None:
+    def __init__(self, led: int, button: int, state: bool = False, **kwargs) -> None:
+        super().__init__(**kwargs)
         from gpiozero import LED, Button
         self._light = LED(led)
         self._button = Button(button, pull_up=False)
