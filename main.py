@@ -1,4 +1,5 @@
 from json import loads
+from typing import Dict
 
 from autobahn.twisted.wamp import ApplicationSession, ApplicationRunner
 from twisted.internet.defer import inlineCallbacks
@@ -9,12 +10,18 @@ from Actuators import Actuators
 class AppSession(ApplicationSession):
 
     def onConnect(self):
-        return super().onConnect()
+        self.join(self.config.realm, [u"ticket"], crossbar.get('ticket'))
+
+    def onChallenge(self, challenge):
+        if challenge.method == u"ticket":
+            return crossbar.get('ticket')
+        else:
+            raise Exception("Invalid authmethod {}".format(challenge.method))
 
     @inlineCallbacks
     def onJoin(self, details):
         for id, callback in actuators.on_join():
-            yield self.register(id, callback)
+            yield self.register(callback, crossbar['prefix'] + '.actuator.' + id)
 
 
 if __name__ == '__main__':
@@ -27,6 +34,13 @@ if __name__ == '__main__':
 
     if conf.get('crossbar') is None:
         raise Exception("Crossbar config is required")
-    url = 'ws://' + conf.get('crossbar').get('host', '127.0.0.1') + '/ws'
+    crossbar: Dict[str, str] = conf.get('crossbar')
+    aux = crossbar.get('host').split('.')
+    aux.reverse()
+    crossbar.update({
+        'prefix': '.'.join(aux)
+    })
+    del aux
+    url = 'ws://' + crossbar.get('host', '127.0.0.1') + '/ws'
     runner = ApplicationRunner(url, 'realm1')
     runner.run(AppSession, auto_reconnect=True)
