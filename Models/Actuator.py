@@ -8,7 +8,7 @@ class Actuator:
         """
         if kwargs.get('_id') is None:
             raise Exception('ID is required')
-        self._id: str = kwargs.get('id')
+        self._id: str = kwargs.get('_id')
 
     def activate(self):
         raise NotImplementedError
