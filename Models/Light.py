@@ -26,10 +26,15 @@ class Light(Actuator):
         self._state: bool = get('state', False)
 
     def activate(self) -> None:
-        self._light.blink(off_time=0, n=1)
+        self._light.on()
 
     def deactivate(self) -> None:
-        self._light.blink(off_time=0, n=1)
+        self._light.off()
 
     def change_state(self) -> None:
-        self._state = not self._state
+        if self._state:
+            self.deactivate()
+            self._state = False
+        else:
+            self.activate()
+            self._state = True
